@@ -1,12 +1,9 @@
 import java.lang.StringBuilder
-import java.math.BigDecimal
 import java.math.BigInteger
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
-import kotlin.collections.ArrayDeque
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.math.abs
 
 
@@ -27,18 +24,27 @@ class RuConverter {
             "миллиардов", "миллиардов", "миллиардов", "миллиардов"),
     )
 
-    private fun stringToNum(input: String): String? {
-        var arr = ArrayList(input.split(" "))
+    private fun stringToNum(input: String): String {
+        val arr = ArrayList(input.toLowerCase().split(" "))
 
         var output: StringBuilder = StringBuilder()
 
+        var minus = false
+
+        if (arr[0] == "минус")
+        {
+            minus = true
+            arr.removeFirst()
+        }
+
         search1(arr, output)
-
         search1for1000(arr, output, search1000(arr))
-
         search1for1000in2(arr, output, search1000in2(arr, 2))
-
         search1for1000in2(arr, output, search1000in2(arr, 3))
+
+        if(minus) output.insert(0,"-")
+
+        if(arr.isNotEmpty()) throw Exception("Input error")
 
         return output.toString()
     }
@@ -46,7 +52,7 @@ class RuConverter {
     private fun search1(arr: ArrayList<String>, sb:StringBuilder)
     {
         if(arr.isEmpty()) return
-        var temp: String = arr.last();
+        val temp: String = arr.last();
         var find: Boolean = false
 
         for(i in 1..9)
@@ -83,13 +89,13 @@ class RuConverter {
     {
         if(arr.isEmpty()) return
         var find: Boolean = false
-        var temp: String? = arr?.last();
+        val temp: String = arr.last();
 
         for(i in 2..9)
         {
             if(temp==digitMap[103]?.get(i))
             {
-                arr?.removeLast();
+                arr.removeLast();
                 sb.insert(0, i.toString())
                 find = true
                 break
@@ -124,13 +130,13 @@ class RuConverter {
     {
         if(arr.isEmpty()) return 0
         var find: Boolean = false
-        var temp: String? = arr?.last();
+        var temp: String = arr.last();
 
         for(i in 1..9)
         {
             if(temp==digitMap[1]?.get(i))
             {
-                arr?.removeLast();
+                arr.removeLast();
                 return i
             }
         }
@@ -204,13 +210,13 @@ class RuConverter {
     {
         if(arr.isEmpty()) return 0
         var find: Boolean = false
-        var temp: String? = arr?.last();
+        var temp: String = arr.last();
 
         for(i in 1..9)
         {
             if(temp==digitMap[nulls]?.get(i))
             {
-                arr?.removeLast();
+                arr.removeLast();
                 return i
             }
         }
