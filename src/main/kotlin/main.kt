@@ -1,5 +1,8 @@
 import java.util.*
 
 fun main(args: Array<String>) {
-      println(RuConverter().gettingData("минус сорок три миллиона сорок одна тысяча сто сорок"))
+      val str = "10013345"
+
+      println(RuConverter().gettingData(str))
+      println(EnConverter().gettingData(str))
 }

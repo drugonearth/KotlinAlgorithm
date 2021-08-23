@@ -1,13 +1,10 @@
 import java.lang.StringBuilder
-import java.math.BigInteger
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.abs
 
 
-class RuConverter {
+
+
+class RuConverter: Converter() {
 
     private val digitMap:Map<Int, Array<String>> = mapOf(
         100 to arrayOf("", "одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"),
@@ -24,7 +21,7 @@ class RuConverter {
             "миллиардов", "миллиардов", "миллиардов", "миллиардов"),
     )
 
-    private fun stringToNum(input: String): String {
+    override fun stringToNum(input: String): String {
         val arr = ArrayList(input.toLowerCase().split(" "))
 
         var output: StringBuilder = StringBuilder()
@@ -110,14 +107,14 @@ class RuConverter {
     {
         if(arr.isEmpty()) return
         var find: Boolean = false
-        var temp: String? = arr?.last();
+        var temp: String? = arr.last();
 
         for(i in 1..9)
         {
             if(temp==digitMap[104]?.get(i))
             {
                 sb.insert(0, i.toString())
-                arr?.removeLast();
+                arr.removeLast();
                 find = true;
                 break
             }
@@ -152,56 +149,54 @@ class RuConverter {
         var temp: String = arr.last();
         var find: Boolean = false
 
-        if(pos == 1)
-        {
-            if(temp == "одна")
-            {
-                arr.removeLast();
-                search10(arr, sb)
-                find = true
-            }
-            else
-            {
-                return
-            }
-        }
-        if(pos == 2) {
-            for (i in 2..4) {
-                if (temp == digitMap[100]?.get(i)) {
+        when(pos) {
+            1 -> {
+                if (temp == "одна") {
                     arr.removeLast();
-                    sb.insert(0, i.toString())
                     search10(arr, sb)
                     find = true
-                    break
+                } else {
+                    return
                 }
             }
-        }
-        if(pos == 5){
-            for (i in 5..9) {
-                if (temp == digitMap[100]?.get(i)) {
-                    arr.removeLast();
-                    sb.insert(0, i.toString())
-                    search10(arr, sb)
-                    find = true
-                    break
-                }
-            }
-
-            if(!find) {
-                for (i in 0..9) {
-                    if (temp == digitMap[102]?.get(i)) {
+            2 -> {
+                for (i in 2..4) {
+                    if (temp == digitMap[100]?.get(i)) {
                         arr.removeLast();
-                        sb.insert(0, ("1$i"))
-                        search100(arr, sb)
+                        sb.insert(0, i.toString())
+                        search10(arr, sb)
                         find = true
                         break
                     }
                 }
             }
+            3 -> {
+                for (i in 5..9) {
+                    if (temp == digitMap[100]?.get(i)) {
+                        arr.removeLast();
+                        sb.insert(0, i.toString())
+                        search10(arr, sb)
+                        find = true
+                        break
+                    }
+                }
 
-            if(!find) {
-                search10(arr, sb)
-                sb.append("0")
+                if (!find) {
+                    for (i in 0..9) {
+                        if (temp == digitMap[102]?.get(i)) {
+                            arr.removeLast();
+                            sb.insert(0, ("1$i"))
+                            search100(arr, sb)
+                            find = true
+                            break
+                        }
+                    }
+                }
+
+                if (!find) {
+                    search10(arr, sb)
+                    sb.append("0")
+                }
             }
         }
     }
@@ -286,92 +281,80 @@ class RuConverter {
         }
     }
 
-
-    fun gettingData(input: String): String? {
-        var data = input
-        return try {
-            data = data.replace(" ", "")
-            val long:Long = data.toLong()
-            val big = BigInteger(abs(long).toString())
-            numToString(DecimalFormat(",###.##", DecimalFormatSymbols(Locale.UK)).format(big), long<0)
-        } catch (e: NumberFormatException) {
-            stringToNum(input)
-        }
-    }
-
-    private fun subStringBuilder(input: String, order: Int ): String?{
+    private fun subStringBuilder(input: String, order: Int ): String{
         var output: StringBuilder = StringBuilder()
 
-        if (input.length == 1)
-        {
-            when {
-                order == 1 -> { //тысячи
-                    if(input[0].toString().toInt()!=1)
-                        output.append(digitMap[100]?.get(input[0].toString().toInt()) + " ")
-                    output.append(digitMap[order]?.get(input[0].toString().toInt()) + " ")
-                }
-                order > 1 -> { //миллионы+
-                    if(input[0].toString().toInt()!=1)
-                        output.append(digitMap[101]?.get(input[0].toString().toInt()) + " ")
-                    output.append(digitMap[order]?.get(input[0].toString().toInt()) + " ")
-                }
-                else -> output.append(digitMap[101]?.get(input[0].toString().toInt()) + " ")
-            }
-        }
-
-        else if (input.length == 2) {
-            when {
-                order == 1 -> {
-                    if (input[0].toString().toInt() == 1)
-                        output.append((digitMap[102]?.get(input[1].toString().toInt())) + " " + "тысяч ")
-                    else {
-                        output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
-                        output.append(digitMap[100]?.get(input[1].toString().toInt()) + " ")
-                        output.append(digitMap[order]?.get(input[1].toString().toInt()) + " ")
+        when(input.length){
+            1 -> {
+                when {
+                    order == 1 -> { // thousand
+                        if(input[0].toString().toInt()!=1)
+                            output.append(digitMap[100]?.get(input[0].toString().toInt()) + " ")
+                        output.append(digitMap[order]?.get(input[0].toString().toInt()) + " ")
                     }
+                    order > 1 -> { // million+
+                        if(input[0].toString().toInt()!=1)
+                            output.append(digitMap[101]?.get(input[0].toString().toInt()) + " ")
+                        output.append(digitMap[order]?.get(input[0].toString().toInt()) + " ")
+                    }
+                    else -> output.append(digitMap[101]?.get(input[0].toString().toInt()) + " ")
                 }
-                order > 1 -> {
-                    if (input[0].toString().toInt() == 1)
-                        output.append((digitMap[102]?.get(input[1].toString().toInt())) + " " + digitMap[order]?.get(5))
-                    else {
+            }
+
+            2-> {
+                when {
+                    order == 1 -> {
+                        if (input[0].toString().toInt() == 1)
+                            output.append((digitMap[102]?.get(input[1].toString().toInt())) + " " + "тысяч ")
+                        else {
+                            output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
+                            output.append(digitMap[100]?.get(input[1].toString().toInt()) + " ")
+                            output.append(digitMap[order]?.get(input[1].toString().toInt()) + " ")
+                        }
+                    }
+                    order > 1 -> {
+                        if (input[0].toString().toInt() == 1)
+                            output.append((digitMap[102]?.get(input[1].toString().toInt())) + " " + digitMap[order]?.get(5) + " ")
+                        else {
+                            output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
+                            output.append(digitMap[101]?.get(input[1].toString().toInt()) + " ")
+                            output.append(digitMap[order]?.get(input[1].toString().toInt()) + " ")
+                        }
+                    }
+                    else -> {
                         output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
                         output.append(digitMap[101]?.get(input[1].toString().toInt()) + " ")
-                        output.append(digitMap[order]?.get(input[1].toString().toInt()) + " ")
                     }
-                }
-                else -> {
-                    output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
-                    output.append(digitMap[101]?.get(input[1].toString().toInt()) + " ")
                 }
             }
-        }
 
-        else
-        {
-            if(input[0]!='0')
-                output.append(digitMap[104]?.get(input[0].toString().toInt()) + " ")
-            when {
-                order == 1 -> {
-                    if (input[1].toString().toInt() == 1)
-                        output.append((digitMap[102]?.get(input[2].toString().toInt())) + " " + "тысяч ")
-                    else {
-                        output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
-                        output.append(digitMap[100]?.get(input[2].toString().toInt()) + " ")
-                        output.append(digitMap[order]?.get(input[2].toString().toInt()) + " ")
+            3 ->
+            {
+                if(input[0]!='0')
+                    output.append(digitMap[104]?.get(input[0].toString().toInt()) + " ")
+                when {
+                    order == 1 -> {
+                        if (input[1].toString().toInt() == 1)
+                            output.append((digitMap[102]?.get(input[2].toString().toInt())) + " " + "тысяч ")
+                        else {
+                            output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
+                            output.append(digitMap[100]?.get(input[2].toString().toInt()) + " ")
+                            output.append(digitMap[order]?.get(input[2].toString().toInt()) + " ")
+                        }
                     }
-                }
-                order > 1 -> {
-                    if (input[1].toString().toInt() == 1)
-                        output.append((digitMap[102]?.get(input[2].toString().toInt())) + " " + digitMap[order]?.get(5))
-                    else {
+                    order > 1 -> {
+                        if (input[1].toString().toInt() == 1)
+                            output.append((digitMap[102]?.get(input[2].toString().toInt())) + " " + digitMap[order]?.get(5) + " ")
+                        else {
+                            output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
+                            output.append(digitMap[101]?.get(input[2].toString().toInt()) + " ")
+                            output.append(digitMap[order]?.get(input[2].toString().toInt()) + " ")
+                        }
+                    }
+                    else -> {
                         output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
                         output.append(digitMap[101]?.get(input[2].toString().toInt()) + " ")
-                        output.append(digitMap[order]?.get(input[2].toString().toInt()) + " ")
                     }
-                }
-                else -> {
-                    output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
-                    output.append(digitMap[101]?.get(input[2].toString().toInt()) + " ")
                 }
             }
         }
@@ -379,7 +362,7 @@ class RuConverter {
         return output.toString()
     }
 
-    private fun numToString(input: String, minus: Boolean): String? {
+    override fun numToString(input: String, minus: Boolean): String {
         val arr: Array<String> = input.split(",").toTypedArray()
 
         if(arr.size == 1 && arr[0].length == 1 && arr[0].toInt() == 0) return "ноль"
