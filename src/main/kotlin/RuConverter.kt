@@ -1,13 +1,16 @@
 import java.lang.StringBuilder
+import java.math.BigInteger
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.*
 import kotlin.collections.ArrayList
-
-
+import kotlin.math.abs
 
 
 class RuConverter: Converter() {
 
     private val digitMap:Map<Int, Array<String>> = mapOf(
-        100 to arrayOf("", "одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"),
+        1000 to arrayOf("", "одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"),
         101 to arrayOf("", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"),
         102 to arrayOf("десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать",
             "семнадцать", "восемнадцать", "девятнадцать"),
@@ -35,9 +38,20 @@ class RuConverter: Converter() {
         }
 
         search1(arr, output)
-        search1for1000(arr, output, search1000(arr))
-        search1for1000in2(arr, output, search1000in2(arr, 2))
-        search1for1000in2(arr, output, search1000in2(arr, 3))
+
+        var searched = searchWords(arr, 1)
+
+        if(searched == 0 && arr.isNotEmpty()) output.insert(0,"000")
+        else
+            search1for1000(arr, output, searched)
+
+        searched = searchWords(arr, 2)
+
+        if(searched == 0 && arr.isNotEmpty()) output.insert(0,"000")
+        else
+            search1for1000in2(arr, output, searched)
+
+        search1for1000in2(arr, output, searchWords(arr, 3))
 
         if(minus) output.insert(0,"-")
 
@@ -46,7 +60,9 @@ class RuConverter: Converter() {
         return output.toString()
     }
 
-    private fun search1(arr: ArrayList<String>, sb:StringBuilder)
+//    NumSubstrinsBuider
+
+    private fun search1(arr: ArrayList<String>, sb:StringBuilder) //1-19
     {
         if(arr.isEmpty()) return
         val temp: String = arr.last();
@@ -82,7 +98,7 @@ class RuConverter: Converter() {
         }
     }
 
-    private fun search10(arr: ArrayList<String>, sb:StringBuilder)
+    private fun search10(arr: ArrayList<String>, sb:StringBuilder)//20-90
     {
         if(arr.isEmpty()) return
         var find: Boolean = false
@@ -103,18 +119,18 @@ class RuConverter: Converter() {
         search100(arr, sb)
     }
 
-    private fun search100(arr: ArrayList<String>, sb:StringBuilder)
+    private fun search100(arr: ArrayList<String>, sb:StringBuilder)//100-900
     {
         if(arr.isEmpty()) return
         var find: Boolean = false
-        var temp: String? = arr.last();
+        var temp: String? = arr?.last();
 
         for(i in 1..9)
         {
             if(temp==digitMap[104]?.get(i))
             {
                 sb.insert(0, i.toString())
-                arr.removeLast();
+                arr?.removeLast();
                 find = true;
                 break
             }
@@ -123,25 +139,7 @@ class RuConverter: Converter() {
         if(!find)sb.insert(0,"0")
     }
 
-    private fun search1000(arr: ArrayList<String>): Int
-    {
-        if(arr.isEmpty()) return 0
-        var find: Boolean = false
-        var temp: String = arr.last();
-
-        for(i in 1..9)
-        {
-            if(temp==digitMap[1]?.get(i))
-            {
-                arr.removeLast();
-                return i
-            }
-        }
-
-        return 0
-    }
-
-    private fun search1for1000(arr: ArrayList<String>, sb:StringBuilder, pos: Int)
+    private fun search1for1000(arr: ArrayList<String>, sb:StringBuilder, pos: Int) //1-19 для тысяч
     {
         if (pos==1) sb.insert(0, "1")
 
@@ -149,59 +147,63 @@ class RuConverter: Converter() {
         var temp: String = arr.last();
         var find: Boolean = false
 
-        when(pos) {
-            1 -> {
-                if (temp == "одна") {
+        if(pos == 1)
+        {
+            if(temp == "одна")
+            {
+                arr.removeLast();
+                search10(arr, sb)
+                find = true
+            }
+            else
+            {
+                sb.insert(0,"00")
+                return
+            }
+        }
+        if(pos == 2) {
+            for (i in 2..4) {
+                if (temp == digitMap[1000]?.get(i)) {
                     arr.removeLast();
+                    sb.insert(0, i.toString())
                     search10(arr, sb)
                     find = true
-                } else {
-                    return
-                }
-            }
-            2 -> {
-                for (i in 2..4) {
-                    if (temp == digitMap[100]?.get(i)) {
-                        arr.removeLast();
-                        sb.insert(0, i.toString())
-                        search10(arr, sb)
-                        find = true
-                        break
-                    }
-                }
-            }
-            3 -> {
-                for (i in 5..9) {
-                    if (temp == digitMap[100]?.get(i)) {
-                        arr.removeLast();
-                        sb.insert(0, i.toString())
-                        search10(arr, sb)
-                        find = true
-                        break
-                    }
-                }
-
-                if (!find) {
-                    for (i in 0..9) {
-                        if (temp == digitMap[102]?.get(i)) {
-                            arr.removeLast();
-                            sb.insert(0, ("1$i"))
-                            search100(arr, sb)
-                            find = true
-                            break
-                        }
-                    }
-                }
-
-                if (!find) {
-                    search10(arr, sb)
-                    sb.append("0")
+                    break
                 }
             }
         }
+        if(pos == 5){
+            for (i in 5..9) {
+                if (temp == digitMap[1000]?.get(i)) {
+                    arr.removeLast();
+                    sb.insert(0, i.toString())
+                    search10(arr, sb)
+                    find = true
+                    break
+                }
+            }
+
+            if(!find) {
+                for (i in 0..9) {
+                    if (temp == digitMap[102]?.get(i)) {
+                        arr.removeLast();
+                        sb.insert(0, ("1$i"))
+                        search100(arr, sb)
+                        find = true
+                        break
+                    }
+                }
+            }
+
+            if(!find) {
+                search10(arr, sb)
+                sb.insert(2,"0")
+            }
+        }
+
     }
 
-    private fun search1000in2(arr: ArrayList<String>, nulls: Int): Int
+    private fun searchWords(arr: ArrayList<String>, nulls: Int): Int//nulls=1 тысяча,2 миллион, 3 миллиард
     {
         if(arr.isEmpty()) return 0
         var find: Boolean = false
@@ -212,6 +214,7 @@ class RuConverter: Converter() {
             if(temp==digitMap[nulls]?.get(i))
             {
                 arr.removeLast();
+                if(arr.isEmpty() && i > 1) throw Exception("input error")
                 return i
             }
         }
@@ -219,7 +222,7 @@ class RuConverter: Converter() {
         return 0
     }
 
-    private fun search1for1000in2(arr: ArrayList<String>, sb:StringBuilder, pos: Int)
+    private fun search1for1000in2(arr: ArrayList<String>, sb:StringBuilder, pos: Int)//1-19 для миллиона+, pos номер в мапе
     {
         if (pos == 1) sb.insert(0,"1")
 
@@ -237,6 +240,7 @@ class RuConverter: Converter() {
             }
             else
             {
+                sb.insert(0,"00")
                 return
             }
         }
@@ -273,27 +277,25 @@ class RuConverter: Converter() {
                     }
                 }
             }
-
             if(!find) {
                 search10(arr, sb)
-                sb.append("0")
             }
         }
+
     }
 
-    private fun subStringBuilder(input: String, order: Int ): String{
-        var output: StringBuilder = StringBuilder()
-
-        when(input.length){
-            1 -> {
+    private fun wordsSubStringBuilder(output: StringBuilder, input: String, order: Int ) //input подстрока из 1-3 цифр, order количество нулей x3
+    {
+        when(input.length) {
+            1-> {
                 when {
-                    order == 1 -> { // thousand
-                        if(input[0].toString().toInt()!=1)
-                            output.append(digitMap[100]?.get(input[0].toString().toInt()) + " ")
+                    order == 1 -> { //тысячи
+                        if (input[0].toString().toInt() != 1)
+                            output.append(digitMap[1000]?.get(input[0].toString().toInt()) + " ")
                         output.append(digitMap[order]?.get(input[0].toString().toInt()) + " ")
                     }
-                    order > 1 -> { // million+
-                        if(input[0].toString().toInt()!=1)
+                    order > 1 -> { //миллионы+
+                        if (input[0].toString().toInt() != 1)
                             output.append(digitMap[101]?.get(input[0].toString().toInt()) + " ")
                         output.append(digitMap[order]?.get(input[0].toString().toInt()) + " ")
                     }
@@ -301,65 +303,31 @@ class RuConverter: Converter() {
                 }
             }
 
-            2-> {
-                when {
-                    order == 1 -> {
-                        if (input[0].toString().toInt() == 1)
-                            output.append((digitMap[102]?.get(input[1].toString().toInt())) + " " + "тысяч ")
-                        else {
-                            output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
-                            output.append(digitMap[100]?.get(input[1].toString().toInt()) + " ")
-                            output.append(digitMap[order]?.get(input[1].toString().toInt()) + " ")
-                        }
-                    }
-                    order > 1 -> {
-                        if (input[0].toString().toInt() == 1)
-                            output.append((digitMap[102]?.get(input[1].toString().toInt())) + " " + digitMap[order]?.get(5) + " ")
-                        else {
-                            output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
-                            output.append(digitMap[101]?.get(input[1].toString().toInt()) + " ")
-                            output.append(digitMap[order]?.get(input[1].toString().toInt()) + " ")
-                        }
-                    }
-                    else -> {
-                        output.append(digitMap[103]?.get(input[0].toString().toInt()) + " ")
-                        output.append(digitMap[101]?.get(input[1].toString().toInt()) + " ")
-                    }
-                }
-            }
+            2-> buildDozen(output, input, order)
 
-            3 ->
-            {
-                if(input[0]!='0')
+            3-> {
+                if (input[0] != '0')
                     output.append(digitMap[104]?.get(input[0].toString().toInt()) + " ")
-                when {
-                    order == 1 -> {
-                        if (input[1].toString().toInt() == 1)
-                            output.append((digitMap[102]?.get(input[2].toString().toInt())) + " " + "тысяч ")
-                        else {
-                            output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
-                            output.append(digitMap[100]?.get(input[2].toString().toInt()) + " ")
-                            output.append(digitMap[order]?.get(input[2].toString().toInt()) + " ")
-                        }
-                    }
-                    order > 1 -> {
-                        if (input[1].toString().toInt() == 1)
-                            output.append((digitMap[102]?.get(input[2].toString().toInt())) + " " + digitMap[order]?.get(5) + " ")
-                        else {
-                            output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
-                            output.append(digitMap[101]?.get(input[2].toString().toInt()) + " ")
-                            output.append(digitMap[order]?.get(input[2].toString().toInt()) + " ")
-                        }
-                    }
-                    else -> {
-                        output.append(digitMap[103]?.get(input[1].toString().toInt()) + " ")
-                        output.append(digitMap[101]?.get(input[2].toString().toInt()) + " ")
-                    }
-                }
+                buildDozen(output, input, order)
             }
         }
+    }
 
-        return output.toString()
+    private fun buildDozen(output: StringBuilder,input: String, order: Int)
+    {
+        if (input[input.length-2].toString().toInt() == 1) {
+            output.append((digitMap[102]?.get(input[input.length - 1].toString().toInt())) + " ")
+            if (order > 0) output.append(digitMap[order]?.get(5) + " ")
+        }
+        else
+        {
+            output.append(digitMap[103]?.get(input[input.length-2].toString().toInt()) + " ")
+
+            if(order==1) output.append(digitMap[1000]?.get(input[input.length-1].toString().toInt()) + " ")
+            else output.append(digitMap[101]?.get(input[input.length-1].toString().toInt()) + " ")
+
+            if(order>0) output.append(digitMap[order]?.get(input[input.length-1].toString().toInt()) + " ")
+        }
     }
 
     override fun numToString(input: String, minus: Boolean): String {
@@ -371,7 +339,7 @@ class RuConverter: Converter() {
         if(minus) output.append("минус ")
 
         for(i in arr.indices) {
-            output.append(subStringBuilder(arr[i], arr.size-i-1))
+            wordsSubStringBuilder(output, arr[i], arr.size-i-1)
         }
 
         return output.toString().replace("  ", " ").replace("  ", " ");

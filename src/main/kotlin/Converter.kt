@@ -4,13 +4,10 @@ import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.math.abs
 
-
-
-
 abstract class Converter {
-
     fun gettingData(input: String): String? {
         var data = input
+
         return try {
             data = data.replace(" ", "")
             val long:Long = data.toLong()
