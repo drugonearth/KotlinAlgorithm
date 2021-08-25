@@ -29,29 +29,10 @@ class RuConverter: Converter() {
 
         var output: StringBuilder = StringBuilder()
 
-        var minus = false
+        var minus = arr[0] == "минус"
+        if (minus) arr.removeFirst()
 
-        if (arr[0] == "минус")
-        {
-            minus = true
-            arr.removeFirst()
-        }
-
-        search1(arr, output)
-
-        var searched = searchWords(arr, 1)
-
-        if(searched == 0 && arr.isNotEmpty()) output.insert(0,"000")
-        else
-            search1for1000(arr, output, searched)
-
-        searched = searchWords(arr, 2)
-
-        if(searched == 0 && arr.isNotEmpty()) output.insert(0,"000")
-        else
-            search1for1000in2(arr, output, searched)
-
-        search1for1000in2(arr, output, searchWords(arr, 3))
+        numSubstringBuilder(3, arr, output)
 
         if(minus) output.insert(0,"-")
 
@@ -60,7 +41,57 @@ class RuConverter: Converter() {
         return output.toString()
     }
 
-//    NumSubstrinsBuider
+    private fun numSubstringBuilder(steps: Int, arr: ArrayList<String>, output: StringBuilder)
+    {
+        search1(arr, output)
+        for(i in 1..steps)
+        {
+            var searched = searchWords(arr, i)
+
+            if(searched == 0 && arr.isNotEmpty() && i!=steps) output.insert(0,"000")
+            else {
+                if (i == 1) search1for1000(arr, output, searched)
+                else search1for1000in2(arr, output, searched)
+            }
+        }
+    }
+
+    private fun oneSubSearch(arr: ArrayList<String> , sb: StringBuilder, from: Int, to: Int, dmPos: Int) : Boolean //1-9 dmpos = ключ в мапе
+    {
+        if(arr.isEmpty()) return false
+        val temp: String = arr.last();
+
+        for(i in 1..9)
+        {
+            if(temp==digitMap[dmPos]?.get(i))
+            {
+                arr.removeLast();
+                sb.insert(0, i.toString())
+                search10(arr, sb)
+                return true
+            }
+        }
+
+        return false
+    }
+
+    private fun elevenSubSearch(arr: ArrayList<String> , sb: StringBuilder) : Boolean //10-19
+    {
+        if(arr.isEmpty()) return false
+        val temp: String = arr.last();
+
+        for (i in 0..9) {
+            if (temp == digitMap[102]?.get(i)) {
+                arr.removeLast();
+                sb.insert(0, ("1$i"))
+                search100(arr, sb)
+                return true
+            }
+        }
+        return false
+    }
+
+
 
     private fun search1(arr: ArrayList<String>, sb:StringBuilder) //1-19
     {
@@ -68,33 +99,13 @@ class RuConverter: Converter() {
         val temp: String = arr.last();
         var find: Boolean = false
 
-        for(i in 1..9)
+        if(!oneSubSearch(arr, sb, 1, 9, 101))
         {
-            if(temp==digitMap[101]?.get(i))
+            if(!elevenSubSearch(arr, sb))
             {
-                arr.removeLast();
-                sb.insert(0, i.toString())
                 search10(arr, sb)
-                find = true
-                break
+                sb.append("0")
             }
-        }
-
-        if(!find) {
-            for (i in 0..9) {
-                if (temp == digitMap[102]?.get(i)) {
-                    arr.removeLast();
-                    sb.insert(0, ("1$i"))
-                    search100(arr, sb)
-                    find = true
-                    break
-                }
-            }
-        }
-
-        if(!find) {
-            search10(arr, sb)
-            sb.append("0")
         }
     }
 
@@ -197,7 +208,7 @@ class RuConverter: Converter() {
 
             if(!find) {
                 search10(arr, sb)
-                sb.insert(2,"0")
+                sb.insert(0,"0")
             }
         }
 
@@ -278,6 +289,7 @@ class RuConverter: Converter() {
                 }
             }
             if(!find) {
+                sb.insert(0,"0")
                 search10(arr, sb)
             }
         }
