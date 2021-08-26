@@ -102,6 +102,8 @@ class RuConverter: Converter() {
 
     private fun search10(arr: ArrayList<String>, sb:StringBuilder)//20-90
     {
+        if(arr.isEmpty()) return
+
         if(!subSearch(arr, sb, 2, 9, 120))sb.insert(0,"0")
 
         search100(arr, sb)

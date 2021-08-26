@@ -8,6 +8,9 @@ class EnConverter : Converter(){
             "seventeen", "eighteen", "nineteen"),
         120 to arrayOf("","", "twenty", "thirty", "forty", "fifty",
             "sixty", "seventy", "eighty", "ninety"),
+        1 to arrayOf("thousand","thousands"),
+        2 to arrayOf("million", "millions"),
+        3 to arrayOf("milliard", "milliards" ),
     )
 
     override fun numToString(input: String, minus: Boolean): String {
@@ -25,30 +28,15 @@ class EnConverter : Converter(){
         return output.toString().replace("  ", " ").replace("  ", " ");
     }
 
-    private fun wordsSubStringBuilder(input: String, order: Int , output: StringBuilder): String {
-
+    private fun wordsSubStringBuilder(input: String, order: Int , output: StringBuilder): String //order степень тысячи
+    {
         when(input.length){
             1 -> {
                 output.append(digitMap[101]?.get(input[0].toString().toInt()) + " ")
-                when(order) {
-                    1 -> { // thousand
-                        if(input[0].toString().toInt()!=1)
-                            output.append("thousands" + " ")
-                        else
-                            output.append("thousand" + " ")
-                    }
-                    2 -> { // million
-                        if(input[0].toString().toInt()!=1)
-                            output.append("millions" + " ")
-                        else
-                            output.append("million" + " ")
-                    }
-                    3 -> { // milliard
-                        if(input[0].toString().toInt()!=1)
-                            output.append("milliards" + " ")
-                        else
-                            output.append("milliard" + " ")
-                    }
+
+                if(order > 0) {
+                    if (input[0].toString().toInt() != 1) output.append(digitMap[order]?.get(1) + " ")
+                    else output.append(digitMap[order]?.get(0) + " ")
                 }
             }
 
@@ -79,17 +67,7 @@ class EnConverter : Converter(){
             output.append(digitMap[120]?.get(input[input.length-2].toString().toInt()) + " ")
             output.append(digitMap[101]?.get(input[input.length-1].toString().toInt()) + " ")
         }
-        when (order) {
-            1 -> {
-                output.append("thousands ")
-            }
-            2 -> {
-                output.append("millions ")
-            }
-            3 -> {
-                output.append("milliards ")
-            }
-        }
+        if(order > 0) output.append(digitMap[order]?.get(1) + " ")
     }
 
     override fun stringToNum(input: String): String {
