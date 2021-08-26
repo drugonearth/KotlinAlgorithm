@@ -56,7 +56,7 @@ class RuConverter: Converter() {
         if(arr.isEmpty()) return false
         val temp: String = arr.last();
 
-        for(i in 1..9)
+        for(i in from..to)
         {
             if(temp==digitMap[dmPos]?.get(i))
             {
