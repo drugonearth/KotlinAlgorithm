@@ -122,23 +122,16 @@ class RuConverter: Converter() {
 
         if(arr.isEmpty()) return
         var temp: String = arr.last();
-        var find: Boolean = false
 
         when(pos) {
             1 -> {
                 if (temp == digitMap[mapPos]?.get(1)) {
                     arr.removeLast();
                     search10(arr, sb)
-                    find = true
                 } else sb.insert(0, "00")
 
             }
-            2-> {
-                if (subSearch(arr, sb, 2, 4, mapPos)) {
-                    find = true
-                    if (arr.isNotEmpty()) search10(arr, sb)
-                }
-            }
+            2-> if (subSearch(arr, sb, 2, 4, mapPos) && arr.isNotEmpty()) search10(arr, sb)
             5 -> {
                 if (!subSearch(arr, sb, 5, 9, mapPos)) {
                     if (!elevenSubSearch(arr, sb)) {
@@ -154,7 +147,6 @@ class RuConverter: Converter() {
     private fun searchWords(arr: ArrayList<String>, nulls: Int): Int//nulls=1 тысяча,2 миллион, 3 миллиард
     {
         if(arr.isEmpty()) return 0
-        var find: Boolean = false
         var temp: String = arr.last();
 
         for(i in 1..9)

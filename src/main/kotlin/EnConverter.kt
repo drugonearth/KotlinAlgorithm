@@ -8,6 +8,7 @@ class EnConverter : Converter(){
             "seventeen", "eighteen", "nineteen"),
         120 to arrayOf("","", "twenty", "thirty", "forty", "fifty",
             "sixty", "seventy", "eighty", "ninety"),
+        0 to arrayOf("hundred","hundreds"),
         1 to arrayOf("thousand","thousands"),
         2 to arrayOf("million", "millions"),
         3 to arrayOf("milliard", "milliards" ),
@@ -27,6 +28,21 @@ class EnConverter : Converter(){
         }
 
         return output.toString()
+    }
+
+    private fun numSubstringBuilder(steps: Int, arr: ArrayList<String>, output: StringBuilder) //steps максимальная степень 1000
+    {
+        search1(arr, output)
+        for(i in 1..steps)
+        {
+            var searched = searchWords(arr, i)
+
+            if(searched == 0 && arr.isNotEmpty() && i!=steps) output.insert(0,"000")
+            else {
+                if (i == 1) search1for1000(arr, output, searched, 1000)
+                else search1for1000(arr, output, searched, 101)
+            }
+        }
     }
 
     private fun subSearch(arr: ArrayList<String>, sb: StringBuilder, from: Int, to: Int, dmPos: Int) : Boolean //поиск слова в мапе, dmpos = ключ в мапе
@@ -91,27 +107,73 @@ class EnConverter : Converter(){
     {
         if(arr.isEmpty()) return
 
-        if(!subSearch(arr, sb, 1, 9, 200))sb.insert(0,"0")
+        val position = searchWords(arr, sb, 0)
+        if(position < 2)
+        {
+            when(position) {
+                0 ->
+                {
+                    if(arr.last()=="one") arr.removeLast()
+                    sb.insert(0, "1")
+                }
+                1 -> {
+                    subSearch(arr, sb, )
+                }
+            }
+        }
     }
 
-    private fun searchWords(arr: ArrayList<String>, nulls: Int): Int//nulls=1 тысяча,2 миллион, 3 миллиард
+    private fun searchWords(arr: ArrayList<String>, sb:StringBuilder, nulls: Int): Int//nulls= 0 сто, 1 тысяча,2 миллион, 3 миллиард
     {
-        if(arr.isEmpty()) return 3
+        if(arr.isEmpty()) return 2
 
-        var find: Boolean = false
         var temp: String = arr.last();
 
-        for(i in 1..2)
+        for(i in 0..1)
         {
             if(temp==digitMap[nulls]?.get(i))
             {
                 arr.removeLast();
-                if(arr.isEmpty() && i > 1) throw Exception("input error")
+                if(arr.isEmpty())
+                {
+                    if(i == 0) {
+                        sb.insert(0, "1")
+                    }
+                    else throw Exception("input error")
+                }
                 return i
             }
         }
 
-        return 0
+        return 2
+    }
+
+    private fun search1for1000(arr: ArrayList<String>, sb:StringBuilder, pos: Int, mapPos: Int) //1-19 для тысяч, миллионов, миллиардов
+    {
+        var temp: String = arr.last();
+
+        when(pos) {
+            1 -> {
+                if (temp == digitMap[mapPos]?.get(1)) {
+                    arr.removeLast();
+                    search10(arr, sb)
+                } else sb.insert(0, "00")
+
+            }
+            2-> {
+                if (subSearch(arr, sb, 2, 4, mapPos)) {
+                    if (arr.isNotEmpty()) search10(arr, sb)
+                }
+            }
+            5 -> {
+                if (!subSearch(arr, sb, 5, 9, mapPos)) {
+                    if (!elevenSubSearch(arr, sb)) {
+                        search10(arr, sb)
+                        sb.append("0")
+                    }
+                } else if (arr.isNotEmpty()) search10(arr, sb)
+            }
+        }
     }
 
     override fun numToString(input: String, minus: Boolean): String {
